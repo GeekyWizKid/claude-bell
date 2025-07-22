@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "volume": 0.5,
+  "sounds": {
+    "completion": "completion.wav",
+    "notification": "notification.wav",
+    "error": "error.wav",
+    "toolComplete": "tool-complete.wav"
+  },
+  "events": {
+    "Stop": true,
+    "Notification": true,
+    "PostToolUse": false,
+    "PreToolUse": false
+  }
+}
