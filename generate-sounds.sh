@@ -64,7 +64,7 @@ def generate_error_sound(filename):
         wav_file.writeframes(wave_data.tobytes())
 
 # Create sounds directory
-os.makedirs('sounds', exist_ok=True)
+os.makedirs('src/sounds', exist_ok=True)
 
 # Generate different sounds
 generate_chord('src/sounds/completion.wav', [523.25, 659.25, 783.99], 0.8, 0.5)  # C-E-G chord
@@ -92,5 +92,5 @@ python3 generate_sounds.py
 # Clean up
 rm generate_sounds.py
 
-echo "Sound files created in sounds/ directory"
-ls -la sounds/
+echo "Sound files created in src/sounds/ directory"
+ls -la src/sounds/
