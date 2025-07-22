@@ -112,12 +112,15 @@ claude-bell/
 ├── install.sh               # Installation script
 ├── uninstall.sh             # Uninstallation script
 ├── config.json              # Default configuration
-├── sounds/                  # Audio files
-│   ├── completion.wav
-│   ├── error.wav
-│   ├── notification.wav
-│   └── tool-complete.wav
 └── src/                     # Source code
+    ├── config-manager.js
+    ├── notification-player.js
+    ├── play-notification.js
+    └── sounds/               # Audio files
+        ├── completion.wav
+        ├── error.wav
+        ├── notification.wav
+        └── tool-complete.wav
     ├── config-manager.js
     ├── notification-player.js
     └── play-notification.js
@@ -129,7 +132,7 @@ claude-bell/
    ```bash
    mkdir -p ~/.claude-code-bell/sounds
    cp src/*.js ~/.claude-code-bell/
-   cp sounds/*.wav ~/.claude-code-bell/sounds/
+   cp src/sounds/*.wav ~/.claude-code-bell/sounds/
    cp config.json ~/.claude-code-bell/
    chmod +x ~/.claude-code-bell/*.js
    ```
