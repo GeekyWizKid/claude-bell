@@ -67,10 +67,10 @@ def generate_error_sound(filename):
 os.makedirs('sounds', exist_ok=True)
 
 # Generate different sounds
-generate_chord('sounds/completion.wav', [523.25, 659.25, 783.99], 0.8, 0.5)  # C-E-G chord
-generate_tone('sounds/notification.wav', 800, 0.3, 0.4)  # Simple notification
-generate_error_sound('sounds/error.wav')  # Error sound
-generate_tone('sounds/tool-complete.wav', 600, 0.2, 0.3)  # Tool completion
+generate_chord('src/sounds/completion.wav', [523.25, 659.25, 783.99], 0.8, 0.5)  # C-E-G chord
+generate_tone('src/sounds/notification.wav', 800, 0.3, 0.4)  # Simple notification
+generate_error_sound('src/sounds/error.wav')  # Error sound
+generate_tone('src/sounds/tool-complete.wav', 600, 0.2, 0.3)  # Tool completion
 
 print("Sound files generated successfully!")
 EOF
