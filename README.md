@@ -18,7 +18,7 @@ A lightweight audio notification plugin for Claude Code that provides audio feed
 1. **Clone or download** this repository
 2. **Run the installer**:
    ```bash
-   cd claude-bell-plugin
+   cd claude-bell
    bash install.sh
    ```
 
@@ -106,7 +106,7 @@ Replace the WAV files in `~/.claude-code-bell/sounds/` with your own sounds:
 ### Project Structure
 
 ```
-claude-bell-plugin/
+claude-bell/
 ├── README.md                 # This file
 ├── README_CN.md              # Chinese README
 ├── install.sh               # Installation script

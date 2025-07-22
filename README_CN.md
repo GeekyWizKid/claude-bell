@@ -18,7 +18,7 @@
 1. **克隆或下载** 本仓库
 2. **运行安装程序**：
    ```bash
-   cd claude-bell-plugin
+   cd claude-bell
    bash install.sh
    ```
 
@@ -106,7 +106,7 @@ node ~/.claude-code-bell/configure.js
 ### 项目结构
 
 ```
-claude-bell-plugin/
+claude-bell/
 ├── README.md                 # 英文说明
 ├── README_CN.md              # 中文说明
 ├── install.sh               # 安装脚本
