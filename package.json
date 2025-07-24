@@ -1,6 +1,6 @@
 {
   "name": "claude-code-bell-plugin",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Audio notification plugin for Claude Code that provides audible alerts for various events",
   "main": "src/play-notification.js",
   "files": [
