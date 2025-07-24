@@ -44,19 +44,55 @@ cleanup_hooks() {
                 let modified = false;
                 
                 if (settings.hooks) {
-                    // Remove bell plugin hooks
                     const events = ['Stop', 'Notification', 'PostToolUse'];
                     events.forEach(event => {
-                        if (settings.hooks[event]) {
+                        if (settings.hooks[event] && Array.isArray(settings.hooks[event])) {
+                            let eventModified = false;
+                            
+                            settings.hooks[event] = settings.hooks[event].filter(hookGroup => {
+                                if (hookGroup && hookGroup.hooks && Array.isArray(hookGroup.hooks)) {
+                                    const originalLength = hookGroup.hooks.length;
+                                    hookGroup.hooks = hookGroup.hooks.filter(hook => {
+                                        if (typeof hook === 'object' && hook.command) {
+                                            return !hook.command.includes('.claude-code-bell') && 
+                                                   !hook.command.includes('play-notification.js');
+                                        }
+                                        return true;
+                                    });
+                                    
+                                    if (hookGroup.hooks.length !== originalLength) {
+                                        eventModified = true;
+                                        modified = true;
+                                    }
+                                    
+                                    return hookGroup.hooks.length > 0;
+                                }
+                                return true;
+                            });
+                            
+                            if (eventModified && settings.hooks[event].length === 0) {
+                                delete settings.hooks[event];
+                                modified = true;
+                            }
+                        }
+                    });
+                    
+                    // Handle legacy flat structure as fallback
+                    events.forEach(event => {
+                        if (settings.hooks[event] && Array.isArray(settings.hooks[event])) {
                             const originalLength = settings.hooks[event].length;
-                            settings.hooks[event] = settings.hooks[event].filter(hook => 
-                                !hook.command || !hook.command.includes('.claude-code-bell')
-                            );
+                            settings.hooks[event] = settings.hooks[event].filter(hook => {
+                                if (typeof hook === 'object' && hook.command) {
+                                    return !hook.command.includes('.claude-code-bell') && 
+                                           !hook.command.includes('play-notification.js');
+                                }
+                                return true;
+                            });
+                            
                             if (settings.hooks[event].length !== originalLength) {
                                 modified = true;
                             }
                             
-                            // Remove empty arrays
                             if (settings.hooks[event].length === 0) {
                                 delete settings.hooks[event];
                                 modified = true;
@@ -78,10 +114,14 @@ cleanup_hooks() {
                     console.log('ℹ️  No bell plugin hooks found to remove');
                 }
                 
-                fs.unlinkSync('$CLAUDE_SETTINGS_FILE.backup');
+                if (fs.existsSync('$CLAUDE_SETTINGS_FILE.backup')) {
+                    fs.unlinkSync('$CLAUDE_SETTINGS_FILE.backup');
+                }
             } catch (error) {
                 console.error('Error cleaning hooks:', error.message);
-                fs.renameSync('$CLAUDE_SETTINGS_FILE.backup', '$CLAUDE_SETTINGS_FILE');
+                if (fs.existsSync('$CLAUDE_SETTINGS_FILE.backup')) {
+                    fs.renameSync('$CLAUDE_SETTINGS_FILE.backup', '$CLAUDE_SETTINGS_FILE');
+                }
             }
             "
         else
