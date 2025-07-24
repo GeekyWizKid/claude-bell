@@ -9,6 +9,12 @@ echo "🛎️  Installing Claude Code Bell Plugin..."
 
 # Get the current directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# If running from global npm bin, get the package directory
+if [[ "$SCRIPT_DIR" == *".nvm"* ]] || [[ "$SCRIPT_DIR" == *"npm"* ]]; then
+    # Find the actual package directory
+    SCRIPT_DIR="$(npm root -g)/claude-code-bell-plugin"
+fi
 PLUGIN_NAME="claude-code-bell"
 PLUGIN_DIR="$HOME/.claude-code-bell"
 
@@ -19,8 +25,8 @@ mkdir -p "$PLUGIN_DIR/sounds"
 # Copy files
 echo "📋 Copying plugin files..."
 cp "$SCRIPT_DIR/src/"*.js "$PLUGIN_DIR/"
-cp "$SCRIPT_DIR/src/sounds/"*.wav "$PLUGIN_DIR/sounds/" 2>/dev/null || true
 cp "$SCRIPT_DIR/src/sounds/"*.mp3 "$PLUGIN_DIR/sounds/" 2>/dev/null || true
+cp "$SCRIPT_DIR/src/sounds/"*.wav "$PLUGIN_DIR/sounds/" 2>/dev/null || true
 cp "$SCRIPT_DIR/config.json" "$PLUGIN_DIR/"
 
 # Make scripts executable

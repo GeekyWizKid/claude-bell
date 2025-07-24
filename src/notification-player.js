@@ -16,15 +16,15 @@ class NotificationPlayer {
             enabled: true,
             volume: 0.5,
             sounds: {
-                completion: 'completion.wav',
-                notification: 'notification.wav',
-                error: 'error.wav',
-                toolComplete: 'tool-complete.wav'
+                completion: 'completion.mp3',
+                notification: 'notification.mp3',
+                error: 'error.mp3',
+                toolComplete: 'tool-complete.mp3'
             }
         };
 
         try {
-            const configFile = configPath || path.join(__dirname, '..', 'config.json');
+            const configFile = configPath || path.join(__dirname, 'config.json');
             if (!fs.existsSync(configFile)) {
                 return defaultConfig;
             }
