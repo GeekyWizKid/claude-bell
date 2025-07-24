@@ -36,22 +36,30 @@ npm install -g claude-code-bell-plugin
 
 4. **手动配置**（如需要）：
    - 在 Claude Code 中运行：`/hooks`
-   - 添加这些 hooks：
-   ```toml
-   [[hooks]]
-   event = "Stop"
-   command = "node $HOME/.claude-code-bell/play-notification.js completion"
-   description = "任务完成时播放提示音"
-
-   [[hooks]]
-   event = "Notification"
-   command = "node $HOME/.claude-code-bell/play-notification.js notification"
-   description = "用户提示时播放提示音"
-
-   [[hooks]]
-   event = "PostToolUse"
-   command = "node $HOME/.claude-code-bell/play-notification.js toolComplete"
-   description = "工具执行完成后播放提示音（可选）"
+   - 添加这些 hooks 到 `~/.claude/settings.json`：
+   ```json
+   {
+     "hooks": {
+       "Stop": [
+         {
+           "command": "node $HOME/.claude-code-bell/play-notification.js completion",
+           "description": "任务完成时播放提示音"
+         }
+       ],
+       "Notification": [
+         {
+           "command": "node $HOME/.claude-code-bell/play-notification.js notification",
+           "description": "用户提示时播放提示音"
+         }
+       ],
+       "PostToolUse": [
+         {
+           "command": "node $HOME/.claude-code-bell/play-notification.js toolComplete",
+           "description": "工具执行完成后播放提示音（可选）"
+         }
+       ]
+     }
+   }
    ```
 
 ### 测试
@@ -160,7 +168,7 @@ bash uninstall.sh
 rm -rf ~/.claude-code-bell
 
 # 从 Claude Code hooks 中移除
-# 编辑 ~/.claude-code/hooks.toml 并删除提示音插件相关条目
+# 编辑 ~/.claude-code/settings.json 并从 hooks 部分删除提示音插件相关条目
 ```
 
 ## 🔧 故障排除

@@ -36,22 +36,30 @@ The installer will automatically configure Claude Code hooks and set up the plug
 
 4. **Manual configuration** (if needed):
    - In Claude Code, run: `/hooks`
-   - Add these hooks:
-   ```toml
-   [[hooks]]
-   event = "Stop"
-   command = "node $HOME/.claude-code-bell/play-notification.js completion"
-   description = "Play completion sound when task finishes"
-
-   [[hooks]]
-   event = "Notification"
-   command = "node $HOME/.claude-code-bell/play-notification.js notification"
-   description = "Play notification sound for user prompts"
-
-   [[hooks]]
-   event = "PostToolUse"
-   command = "node $HOME/.claude-code-bell/play-notification.js toolComplete"
-   description = "Play sound after tool execution (optional)"
+   - Add these hooks to `~/.claude/settings.json`:
+   ```json
+   {
+     "hooks": {
+       "Stop": [
+         {
+           "command": "node $HOME/.claude-code-bell/play-notification.js completion",
+           "description": "Play completion sound when task finishes"
+         }
+       ],
+       "Notification": [
+         {
+           "command": "node $HOME/.claude-code-bell/play-notification.js notification",
+           "description": "Play notification sound for user prompts"
+         }
+       ],
+       "PostToolUse": [
+         {
+           "command": "node $HOME/.claude-code-bell/play-notification.js toolComplete",
+           "description": "Play sound after tool execution (optional)"
+         }
+       ]
+     }
+   }
    ```
 
 ### Testing
@@ -160,7 +168,7 @@ bash uninstall.sh
 rm -rf ~/.claude-code-bell
 
 # Remove from Claude Code hooks
-# Edit ~/.claude-code/hooks.toml and remove bell plugin entries
+# Edit ~/.claude-code/settings.json and remove bell plugin entries from the hooks section
 ```
 
 ## 🔧 Troubleshooting
