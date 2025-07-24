@@ -1,12 +1,3 @@
-#!/bin/bash
-
-# Claude Code Bell Plugin - Sound Generator
-# This script generates simple WAV sound files for the plugin
-
-echo "Generating sound files for Claude Code Bell Plugin..."
-
-# Create temporary Python script for sound generation
-cat > generate_sounds.py << 'EOF'
 import numpy as np
 import wave
 import os
@@ -73,30 +64,3 @@ generate_error_sound('src/sounds/error.wav')  # Error sound
 generate_tone('src/sounds/tool-complete.wav', 600, 0.2, 0.3)  # Tool completion
 
 print("Sound files generated successfully!")
-EOF
-
-# Check if Python and numpy are available
-if ! command -v python3 &> /dev/null; then
-    echo "Python3 is required but not installed. Please install Python3 first."
-    exit 1
-fi
-
-if ! python3 -c "import numpy" 2>/dev/null; then
-    echo "Installing numpy for sound generation..."
-    pip3 install numpy
-fi
-
-# Generate sounds
-if [[ "$1" == "--mp3" ]]; then
-    echo "🎵 Generating MP3 format sounds..."
-    python3 generate-sounds-fixed.py --mp3
-else
-    echo "🎵 Generating WAV format sounds..."
-    python3 generate-sounds-fixed.py
-fi
-
-# Clean up
-rm -f generate-sounds-fixed.py
-
-echo "Sound files created in src/sounds/ directory"
-ls -la src/sounds/

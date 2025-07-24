@@ -67,10 +67,13 @@ class NotificationPlayer {
     #getPlayCommand(soundFile) {
         const platform = process.platform;
         const volume = Math.max(0, Math.min(1, this.#config.volume));
+        const fileExtension = path.extname(soundFile).toLowerCase();
 
         const commands = {
             darwin: `afplay "${soundFile}" -v ${volume}`,
-            linux: `aplay "${soundFile}" -q`,
+            linux: fileExtension === '.mp3' ? 
+                `mpg123 -q "${soundFile}"` : 
+                `aplay "${soundFile}" -q`,
             win32: `powershell -c "(New-Object Media.SoundPlayer '${soundFile}').PlaySync()"`,
             default: `echo -e "\a"`
         };

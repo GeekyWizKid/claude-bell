@@ -13,7 +13,15 @@
 
 ## 🚀 快速开始
 
-### 安装
+### 通过 npm 安装（推荐）
+
+```bash
+npm install -g claude-code-bell-plugin
+```
+
+安装程序会自动配置 Claude Code hooks 并设置插件。如果 Claude Code 正在运行，只需重启即可。
+
+### 手动安装
 
 1. **克隆或下载** 本仓库
 2. **运行安装程序**：

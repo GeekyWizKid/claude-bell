@@ -1,0 +1,44 @@
+{
+  "name": "claude-code-bell-plugin",
+  "version": "1.0.0",
+  "description": "Audio notification plugin for Claude Code that provides audible alerts for various events",
+  "main": "src/play-notification.js",
+  "files": [
+    "src/",
+    "config.json",
+    "install.sh",
+    "uninstall.sh",
+    "generate-sounds.sh",
+    "LICENSE"
+  ],
+  "bin": {
+    "claude-bell-setup": "./install.sh"
+  },
+  "scripts": {
+    "install": "bash install.sh",
+    "postinstall": "bash install.sh",
+    "uninstall-plugin": "bash uninstall.sh",
+    "generate-sounds": "bash generate-sounds.sh",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "claude-code",
+    "plugin",
+    "audio",
+    "notification",
+    "bell"
+  ],
+  "author": "Das",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GeekyWizKid/claude-bell.git"
+  },
+  "bugs": {
+    "url": "https://github.com/GeekyWizKid/claude-bell/issues"
+  },
+  "homepage": "https://github.com/GeekyWizKid/claude-bell#readme"
+}

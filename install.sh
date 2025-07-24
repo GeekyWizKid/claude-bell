@@ -19,7 +19,8 @@ mkdir -p "$PLUGIN_DIR/sounds"
 # Copy files
 echo "📋 Copying plugin files..."
 cp "$SCRIPT_DIR/src/"*.js "$PLUGIN_DIR/"
-cp "$SCRIPT_DIR/src/sounds/"*.wav "$PLUGIN_DIR/sounds/"
+cp "$SCRIPT_DIR/src/sounds/"*.wav "$PLUGIN_DIR/sounds/" 2>/dev/null || true
+cp "$SCRIPT_DIR/src/sounds/"*.mp3 "$PLUGIN_DIR/sounds/" 2>/dev/null || true
 cp "$SCRIPT_DIR/config.json" "$PLUGIN_DIR/"
 
 # Make scripts executable

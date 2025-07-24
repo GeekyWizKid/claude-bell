@@ -13,7 +13,15 @@ A lightweight audio notification plugin for Claude Code that provides audio feed
 
 ## 🚀 Quick Start
 
-### Installation
+### Installation via npm (Recommended)
+
+```bash
+npm install -g claude-code-bell-plugin
+```
+
+The installer will automatically configure Claude Code hooks and set up the plugin. Just restart Claude Code if it's currently running.
+
+### Manual Installation
 
 1. **Clone or download** this repository
 2. **Run the installer**:
