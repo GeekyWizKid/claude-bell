@@ -9,93 +9,92 @@ echo "🔕 Uninstalling Claude Code Bell Plugin..."
 
 # Configuration
 PLUGIN_DIR="$HOME/.claude-code-bell"
-CLAUDE_HOOKS_FILE="$HOME/.claude-code/hooks.toml"
-BACKUP_FILE="$HOME/.claude-code/hooks.toml.backup.$(date +%Y%m%d_%H%M%S)"
+CLAUDE_SETTINGS_FILE="$HOME/.claude/settings.json"
+CLAUDE_BACKUP_FILE="$HOME/.claude/settings.json.backup.$(date +%Y%m%d_%H%M%S)"
 
 # Function to check if file exists
 file_exists() {
     [ -f "$1" ]
 }
 
-# Function to backup hooks file
-backup_hooks() {
-    if file_exists "$CLAUDE_HOOKS_FILE"; then
-        echo "💾 Backing up hooks.toml to $BACKUP_FILE"
-        cp "$CLAUDE_HOOKS_FILE" "$BACKUP_FILE"
+# Function to backup settings file
+backup_settings() {
+    if file_exists "$CLAUDE_SETTINGS_FILE"; then
+        echo "💾 Backing up settings.json to $CLAUDE_BACKUP_FILE"
+        cp "$CLAUDE_SETTINGS_FILE" "$CLAUDE_BACKUP_FILE"
     fi
 }
 
 # Function to remove bell-related hooks
 cleanup_hooks() {
-    if file_exists "$CLAUDE_HOOKS_FILE"; then
+    if file_exists "$CLAUDE_SETTINGS_FILE"; then
         echo "🧹 Cleaning up Claude Code hooks..."
         
-        # First, backup the original
-        cp "$CLAUDE_HOOKS_FILE" "$CLAUDE_HOOKS_FILE.backup"
+        # Backup original settings
+        cp "$CLAUDE_SETTINGS_FILE" "$CLAUDE_SETTINGS_FILE.backup"
         
-        # Use a simpler approach: grep out lines that contain bell plugin references
-        # and their associated hooks blocks
-        
-        # First, find line numbers of hooks blocks that contain bell references
-        local bell_lines=$(grep -n 'claude-code-bell\|play-notification\.js\|\.claude-code-bell' "$CLAUDE_HOOKS_FILE" | cut -d: -f1)
-        
-        if [ -n "$bell_lines" ]; then
-            echo "🧹 Removing bell plugin hooks..."
+        # Use Node.js to safely remove hooks (if available)
+        if command -v node >/dev/null 2>&1; then
+            node -e "
+            const fs = require('fs');
+            const path = require('path');
             
-            # Create a new file without the problematic hooks
-            local current_line=1
-            local skip_start=0
-            local skip_end=0
-            
-            # Process file line by line
-            while IFS= read -r line; do
-                if [[ "$line" =~ ^\[\[hooks\]\] ]]; then
-                    # Start of a new hooks block
-                    local block_end=$(tail -n +$current_line "$CLAUDE_HOOKS_FILE" | grep -n '^\[\[' | tail -n +2 | head -n1 | cut -d: -f1)
-                    if [ -z "$block_end" ]; then
-                        block_end=$(wc -l < "$CLAUDE_HOOKS_FILE")
-                        block_end=$((block_end - current_line + 1))
-                    else
-                        block_end=$((block_end + current_line - 1))
-                    fi
+            try {
+                const settings = JSON.parse(fs.readFileSync('$CLAUDE_SETTINGS_FILE', 'utf8'));
+                let modified = false;
+                
+                if (settings.hooks) {
+                    // Remove bell plugin hooks
+                    const events = ['Stop', 'Notification', 'PostToolUse'];
+                    events.forEach(event => {
+                        if (settings.hooks[event]) {
+                            const originalLength = settings.hooks[event].length;
+                            settings.hooks[event] = settings.hooks[event].filter(hook => 
+                                !hook.command || !hook.command.includes('.claude-code-bell')
+                            );
+                            if (settings.hooks[event].length !== originalLength) {
+                                modified = true;
+                            }
+                            
+                            // Remove empty arrays
+                            if (settings.hooks[event].length === 0) {
+                                delete settings.hooks[event];
+                                modified = true;
+                            }
+                        }
+                    });
                     
-                    # Check if this block contains bell references
-                    local block_start=$current_line
-                    local block_content=$(sed -n "${block_start},${block_end}p" "$CLAUDE_HOOKS_FILE")
-                    if echo "$block_content" | grep -q 'claude-code-bell\|play-notification\.js\|\.claude-code-bell'; then
-                        # Skip this block
-                        skip_start=$block_start
-                        skip_end=$block_end
-                        current_line=$((block_end + 1))
-                        continue
-                    fi
-                fi
+                    // Remove empty hooks object
+                    if (Object.keys(settings.hooks).length === 0) {
+                        delete settings.hooks;
+                        modified = true;
+                    }
+                }
                 
-                if [ $current_line -lt $skip_start ] || [ $current_line -gt $skip_end ]; then
-                    echo "$line"
-                fi
+                if (modified) {
+                    fs.writeFileSync('$CLAUDE_SETTINGS_FILE', JSON.stringify(settings, null, 2));
+                    console.log('✅ Claude Code hooks cleaned');
+                } else {
+                    console.log('ℹ️  No bell plugin hooks found to remove');
+                }
                 
-                current_line=$((current_line + 1))
-            done < "$CLAUDE_HOOKS_FILE" > "$CLAUDE_HOOKS_FILE.clean"
-            
-            # Clean up empty lines and check if file has content
-            grep -v '^[[:space:]]*$' "$CLAUDE_HOOKS_FILE.clean" > "$CLAUDE_HOOKS_FILE.final" 2>/dev/null
-            
-            if [ -s "$CLAUDE_HOOKS_FILE.final" ]; then
-                mv "$CLAUDE_HOOKS_FILE.final" "$CLAUDE_HOOKS_FILE"
-                rm -f "$CLAUDE_HOOKS_FILE.backup" "$CLAUDE_HOOKS_FILE.clean"
-                echo "✅ Claude Code hooks cleaned"
-            else
-                rm -f "$CLAUDE_HOOKS_FILE.final" "$CLAUDE_HOOKS_FILE.clean" "$CLAUDE_HOOKS_FILE"
-                echo "🗑️  hooks.toml removed (no content left)"
-            fi
+                fs.unlinkSync('$CLAUDE_SETTINGS_FILE.backup');
+            } catch (error) {
+                console.error('Error cleaning hooks:', error.message);
+                fs.renameSync('$CLAUDE_SETTINGS_FILE.backup', '$CLAUDE_SETTINGS_FILE');
+            }
+            "
         else
-            # No bell plugin references found, keep the file as-is
-            rm -f "$CLAUDE_HOOKS_FILE.backup" "$CLAUDE_HOOKS_FILE.clean"
-            echo "ℹ️  No bell plugin hooks found to remove"
+            # Fallback: use sed to remove hooks (less precise)
+            if grep -q 'claude-code-bell\|play-notification\.js' "$CLAUDE_SETTINGS_FILE"; then
+                sed -i.backup '/claude-code-bell\|play-notification\.js/d' "$CLAUDE_SETTINGS_FILE"
+                echo "✅ Claude Code hooks cleaned (using sed)"
+            else
+                echo "ℹ️  No bell plugin hooks found to remove"
+            fi
         fi
     else
-        echo "ℹ️  Claude Code hooks.toml not found - nothing to clean"
+        echo "ℹ️  Claude Code settings.json not found - nothing to clean"
     fi
 }
 
@@ -116,10 +115,10 @@ show_instructions() {
     echo "🎉 Claude Code Bell Plugin successfully uninstalled!"
     echo ""
     
-    if file_exists "$BACKUP_FILE"; then
-        echo "💾 Backup saved: $BACKUP_FILE"
-        echo "   You can restore your previous hooks with:"
-        echo "   cp \"$BACKUP_FILE\" \"$CLAUDE_HOOKS_FILE\""
+    if file_exists "$CLAUDE_BACKUP_FILE"; then
+        echo "💾 Backup saved: $CLAUDE_BACKUP_FILE"
+        echo "   You can restore your previous settings with:"
+        echo "   cp \"$CLAUDE_BACKUP_FILE\" \"$CLAUDE_SETTINGS_FILE\""
     fi
     
     echo ""
@@ -158,7 +157,7 @@ main() {
     check_claude_running
     
     # Perform uninstall
-    backup_hooks
+    backup_settings
     cleanup_hooks
     remove_plugin
     
@@ -179,7 +178,7 @@ case "${1:-}" in
         ;;
     --force|-f)
         echo "Force mode enabled - skipping confirmation"
-        backup_hooks
+        backup_settings
         cleanup_hooks
         remove_plugin
         show_instructions

@@ -33,48 +33,109 @@ cp "$SCRIPT_DIR/config.json" "$PLUGIN_DIR/"
 echo "🔧 Setting permissions..."
 chmod +x "$PLUGIN_DIR"/*.js
 
-# Check if Claude Code hooks directory exists
-CLAUDE_HOOKS_DIR="$HOME/.claude-code"
-CLAUDE_HOOKS_FILE="$CLAUDE_HOOKS_DIR/hooks.toml"
+# Configure Claude Code hooks in settings.json
+CLAUDE_SETTINGS_DIR="$HOME/.claude"
+CLAUDE_SETTINGS_FILE="$CLAUDE_SETTINGS_DIR/settings.json"
 
-# Auto-configure Claude Code hooks if directory exists
-if [ -d "$CLAUDE_HOOKS_DIR" ]; then
+# Auto-configure Claude Code hooks
+if [ -d "$CLAUDE_SETTINGS_DIR" ]; then
     echo "🔗 Configuring Claude Code hooks..."
     
-    # Check if hooks.toml exists, create if not
-    if [ ! -f "$CLAUDE_HOOKS_FILE" ]; then
-        echo "Creating hooks.toml..."
-        touch "$CLAUDE_HOOKS_FILE"
+    # Check if settings.json exists, create if not
+    if [ ! -f "$CLAUDE_SETTINGS_FILE" ]; then
+        echo "Creating settings.json..."
+        cat > "$CLAUDE_SETTINGS_FILE" << 'EOF'
+{
+  "hooks": {}
+}
+EOF
     fi
     
     # Check if bell plugin hooks already exist
-    if grep -q "claude-code-bell" "$CLAUDE_HOOKS_FILE"; then
+    if grep -q "claude-code-bell" "$CLAUDE_SETTINGS_FILE"; then
         echo "⚠️  Claude Code Bell hooks already configured. Skipping..."
     else
-        echo "Adding hooks to $CLAUDE_HOOKS_FILE..."
-        cat >> "$CLAUDE_HOOKS_FILE" << EOF
-
-# Claude Code Bell Plugin - Audio notifications
-[[hooks]]
-event = "Stop"
-command = "node $HOME/.claude-code-bell/play-notification.js completion"
-description = "Play completion sound when task finishes"
-
-[[hooks]]
-event = "Notification"
-command = "node $HOME/.claude-code-bell/play-notification.js notification"
-description = "Play notification sound for user prompts"
-
-[[hooks]]
-event = "PostToolUse"
-command = "node $HOME/.claude-code-bell/play-notification.js toolComplete"
-description = "Play sound after tool execution (optional)"
+        echo "Adding hooks to $CLAUDE_SETTINGS_FILE..."
+        
+        # Backup original settings
+        cp "$CLAUDE_SETTINGS_FILE" "$CLAUDE_SETTINGS_FILE.backup.$(date +%Y%m%d_%H%M%S)"
+        
+        # Create a temporary file with the new hooks
+        cat > "$CLAUDE_SETTINGS_FILE.tmp" << EOF
+{
+  "hooks": {
+    "Stop": [
+      {
+        "command": "node $HOME/.claude-code-bell/play-notification.js completion",
+        "description": "Play completion sound when task finishes"
+      }
+    ],
+    "Notification": [
+      {
+        "command": "node $HOME/.claude-code-bell/play-notification.js notification",
+        "description": "Play notification sound for user prompts"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "command": "node $HOME/.claude-code-bell/play-notification.js toolComplete",
+        "description": "Play sound after tool execution"
+      }
+    ]
+  }
+}
 EOF
+        
+        # Merge with existing settings if any
+        if command -v node >/dev/null 2>&1; then
+            node -e "
+            const fs = require('fs');
+            const existing = JSON.parse(fs.readFileSync('$CLAUDE_SETTINGS_FILE', 'utf8'));
+            const newHooks = JSON.parse(fs.readFileSync('$CLAUDE_SETTINGS_FILE.tmp', 'utf8'));
+            
+            // Merge hooks
+            if (!existing.hooks) existing.hooks = {};
+            Object.assign(existing.hooks, newHooks.hooks);
+            
+            fs.writeFileSync('$CLAUDE_SETTINGS_FILE', JSON.stringify(existing, null, 2));
+            fs.unlinkSync('$CLAUDE_SETTINGS_FILE.tmp');
+            "
+        else
+            mv "$CLAUDE_SETTINGS_FILE.tmp" "$CLAUDE_SETTINGS_FILE"
+        fi
+        
         echo "✅ Hooks configured successfully!"
     fi
 else
-    echo "⚠️  Claude Code directory not found at $CLAUDE_HOOKS_DIR"
-    echo "   Manual configuration required - see instructions below"
+    echo "⚠️  Claude Code directory not found at $CLAUDE_SETTINGS_DIR"
+    echo "   Creating .claude directory and settings.json..."
+    mkdir -p "$CLAUDE_SETTINGS_DIR"
+    
+    cat > "$CLAUDE_SETTINGS_FILE" << EOF
+{
+  "hooks": {
+    "Stop": [
+      {
+        "command": "node $HOME/.claude-code-bell/play-notification.js completion",
+        "description": "Play completion sound when task finishes"
+      }
+    ],
+    "Notification": [
+      {
+        "command": "node $HOME/.claude-code-bell/play-notification.js notification",
+        "description": "Play notification sound for user prompts"
+      }
+    ],
+    "PostToolUse": [
+      {
+        "command": "node $HOME/.claude-code-bell/play-notification.js toolComplete",
+        "description": "Play sound after tool execution"
+      }
+    ]
+  }
+}
+EOF
+    echo "✅ Claude Code hooks configured successfully!"
 fi
 
 # Create configuration CLI
@@ -152,15 +213,9 @@ if [ -d "$CLAUDE_HOOKS_DIR" ]; then
     echo "   You can verify by running '/hooks' in Claude Code"
     echo "   Or restart Claude Code if it's currently running"
 else
-    echo "📋 Manual configuration required:"
-    echo "1. In Claude Code, run '/hooks' to open hooks configuration"
-    echo "2. Add the following hooks:"
-    echo ""
-    echo "   Event: Stop"
-    echo "   Command: node $HOME/.claude-code-bell/play-notification.js completion"
-    echo ""
-    echo "   Event: Notification"
-    echo "   Command: node $HOME/.claude-code-bell/play-notification.js notification"
+    echo "✅ Claude Code hooks have been automatically configured!"
+    echo "   You can verify by running '/hooks' in Claude Code"
+    echo "   Or restart Claude Code if it's currently running"
 fi
 
 echo ""
